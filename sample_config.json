@@ -1,0 +1,41 @@
+{
+  "bridge": {
+      "name": "Homebridge",
+      "username": "CC:22:3D:E3:CE:30",
+      "port": 51826,
+      "pin": "031-45-154"
+  },
+
+  "description": "This is an example configuration",
+
+  "accessories": [
+      {
+        "accessory": "mqttswitch",
+        "name": "Living Room Light",
+        "url": "mqtt://127.0.0.1",
+        "username": "",
+        "password": "",
+        "caption": "Lamp2",
+        "topics": {
+          "statusSet" : "lamp/set/0",
+          "statusGet" : "lamp/status/0"
+        },
+        "onValue": "1",
+        "offValue": "0"
+      },
+      {
+        "accessory": "mqttswitch",
+        "name": "Dining Room Light",
+        "url": "mqtt://127.0.0.1",
+        "username": "",
+        "password": "",
+        "caption": "Lamp2",
+        "topics": {
+          "statusSet" : "lamp/set/1",
+          "statusGet" : "lamp/status/1"
+        },
+        "onValue": "1",
+        "offValue": "0"
+      }
+  ]
+}
