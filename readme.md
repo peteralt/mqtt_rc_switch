@@ -1,6 +1,6 @@
 # MQTT RC Switch
 
-## What's is good for
+## What's this good for
 
 I'm using Homebridge on a Raspberry Pi, that is connected to my iOS and AppleTV devices. The Raspberry also runs Mosquitto to send and receive MQTT messages from external sensors and actuators.
 
