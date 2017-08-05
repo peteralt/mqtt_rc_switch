@@ -19,7 +19,9 @@ const int rfPulseLength = 180;
 const int rfRepeatTx = 15;
 
 // Make sure you're using the correct pin
-const byte txPin = 0;
+// see http://www.instructables.com/id/Programming-ESP8266-ESP-12E-NodeMCU-Using-Arduino-/
+const byte txPin = 0; // D3
+const byte rxPin = 4; // D2
 
 const int numberOfLights = 5;
 bool lightStatus[] = {false, false, false, false, false };
@@ -45,7 +47,8 @@ bool changesAvailable = false;
  
 WiFiClient espClient;
 PubSubClient client(espClient);
-RCSwitch mySwitch = RCSwitch();
+RCSwitch txSwitch = RCSwitch();
+RCSwitch rxSwitch = RCSwitch();
 Ticker timer;
   
 void callback(char* topic, byte* payload, unsigned int length) {
@@ -88,7 +91,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
       lightStatus[lightID] = true;
     }
   }
-  mySwitch.send(command, 24);
+  txSwitch.send(command, 24);
   Serial.print(lightStatus[lightID]);
   Serial.println();
   changesAvailable = true;
@@ -151,10 +154,12 @@ void setup()
  client.setServer(mqtt_server, 1883);
  client.setCallback(callback);
 
- mySwitch.enableTransmit(txPin);
- mySwitch.setProtocol(rfProtocol);
- mySwitch.setPulseLength(rfPulseLength);
- mySwitch.setRepeatTransmit(rfRepeatTx);
+ rxSwitch.enableReceive(rxPin);
+
+ txSwitch.enableTransmit(txPin);
+ txSwitch.setProtocol(rfProtocol);
+ txSwitch.setPulseLength(rfPulseLength);
+ txSwitch.setRepeatTransmit(rfRepeatTx);
 
  timer.attach(15, publishStatus);
 }
@@ -181,10 +186,33 @@ void setup_wifi() {
  
 void loop()
 {
- if (!client.connected()) {
-  reconnect();
- }
- client.loop();
+  if (rxSwitch.available()) {
+    int value = rxSwitch.getReceivedValue();
+    if (value != 0) {
+      // looping through the off and on commands to determine what command we just received
+      for (int i=0;i < numberOfLights;i++) {
+        if(txOff[i] == value) {
+          Serial.print("Switching off: ");
+          Serial.println(i);
+          lightStatus[i] = false;
+        }
+        if(txOn[i] == value) {
+          Serial.print("Switching on: ");
+          Serial.println(i);
+          lightStatus[i] = true;
+        }
+      }
+      // update immediately. Could use debounce (might get called multiple times when button remains pressed)
+      changesAvailable = true;
+      publishStatus();
+    }
+    rxSwitch.resetAvailable();
+  }
+ 
+  if (!client.connected()) {
+    reconnect();
+  }
+  client.loop();
 }
 
 // https://coderwall.com/p/zfmwsg/arduino-string-to-char
